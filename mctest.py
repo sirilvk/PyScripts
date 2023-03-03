@@ -44,9 +44,9 @@ def receiver(mgroup):
   sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
   # windows workaround
   try:
-    sock.bind(mgroup, mport)
+    sock.bind((mgroup, mport))
   except socket.error:
-    sock.bind('', mport)
+    sock.bind(('', mport))
   mreq = struct.pack("4s4s", socket.inet_aton(group), socket.inet_aton(interface))
   sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
   print('Listening on ' + mgroup + ' port ' + str(mport) + ' on interface ' + interface)
@@ -59,7 +59,7 @@ def receiver(mgroup):
       logger.handle(lr)
     except Exception as e:
       print('Exception ', str(e))
-      print(socket.gethostname() + ': Received on ' + mgroup + ' from ' + address[0] + ' from port ' + str(address[1]) + ' on [' + interface + ']: ' + data)
+      print(socket.gethostname() + ': Received on ' + mgroup + ' from ' + address[0] + ' from port ' + str(address[1]) + ' on [' + interface + ']: ' + str(data))
       exit(0)
 
 
@@ -76,7 +76,7 @@ def sender(mgroup):
     time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     mcast_msg = 'msg from [' + socket.gethostname() + ']:' + message + ' : ' + time_now
     print("Broadcasting to " + mgroup + "(TTL " + str(mttl) + "): " + mcast_msg)
-    sock.sendto(mcast_msg, (mgroup, mport))
+    sock.sendto(bytes(mcast_msg, 'utf-8'), (mgroup, mport))
     time.sleep(1)
 
 signal.signal(signal.SIGALRM, handler)
